@@ -1,12 +1,21 @@
 import { Browser, webkit } from 'playwright';
+import { Commander } from './config.js';
+import { getCommanderUrl } from './edhrec.js';
 
-export const track = async () => {
+export const track = async (commanders: Commander[]) => {
   const browser = await webkit.launch();
   try {
-    const newCards = await fetchCards({
-      browser,
-      url: 'https://edhrec.com/commanders/tasha-the-witch-queen/expensive',
-    })
+    let newCards: string[][] = []
+    for (const commander of commanders) {
+      const url: string = getCommanderUrl(commander)
+      console.log(`getting cards from ${url}`)
+      const cards = await fetchCards({
+        browser,
+        url: url,
+      })
+      console.log(cards)
+      newCards.push(cards)
+    }
 
     console.log(newCards)
   } catch (err) {

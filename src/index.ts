@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
-import { getCommanders, readConfig } from "./config.js";
+import { readConfig } from "./config.js";
+import { getCommanders } from "./input.js";
 import { track } from "./tracker.js";
 
 program
@@ -19,8 +20,8 @@ program.command('track')
     }
     console.log(config)
 
-    await getCommanders({config})
-    // await track()
+    const commanders = await getCommanders({config})
+    await track(commanders)
   });
 
 program.parse();
