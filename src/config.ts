@@ -35,17 +35,16 @@ export const writeConfig = (config: TrackConfig) => {
   fs.writeFileSync(configPath, JSON.stringify(config))
 }
 
-// todo: this is bad/lazy
-let commanders: Commander[] = []
-
 type PromptForCommandersOptions = {
   reset?: boolean
   config: TrackConfig
 }
 
 // recursively prompt for commanders to add
-export const promptForCommanders = async (opts: PromptForCommandersOptions) => {
+export const getCommanders = async (opts: PromptForCommandersOptions) => {
   const { reset, config } = opts
+
+  let commanders: Commander[] = []
 
   // append commanders from config if not resetting from scratch
   if (!reset) {
@@ -56,7 +55,7 @@ export const promptForCommanders = async (opts: PromptForCommandersOptions) => {
   inquirer.registerPrompt('autocomplete', inquirerPrompt);
 
   try {
-    await getAnswers()
+    commanders = await promptForCommander(commanders)
     console.log(commanders)
   } catch (error) {
     console.log(error)
@@ -64,7 +63,7 @@ export const promptForCommanders = async (opts: PromptForCommandersOptions) => {
 }
 
 // prompt for commanders to add
-const getAnswers = async () => {
+const promptForCommander = async (commanders: Commander[]) => {
   const questions = [
     {
       type: "autocomplete",
@@ -74,7 +73,7 @@ const getAnswers = async () => {
         try {
           return typeahead(input)
         } catch (err: any) {
-          throw new Error(err)  
+          throw new Error(err)
         }
       }
     },
@@ -99,10 +98,11 @@ const getAnswers = async () => {
       }
       commanders.push(commander)
       if (!answers.is_finished) {
-        await getAnswers()
+        await promptForCommander(commanders)
       }
     })
     .catch((error) => {
       throw new Error(error)
     });
+  return commanders
 }

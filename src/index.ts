@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
-import { promptForCommanders, readConfig } from "./config.js";
+import { getCommanders, readConfig } from "./config.js";
 import { track } from "./tracker.js";
 
 program
@@ -19,7 +19,7 @@ program.command('track')
     }
     console.log(config)
 
-    await promptForCommanders({config})
+    await getCommanders({config})
     // await track()
   });
 
