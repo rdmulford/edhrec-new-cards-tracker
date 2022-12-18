@@ -34,6 +34,7 @@ const getNewCards = async (commanders: Commander[]): Promise<NewCardMap> => {
   const browser = await webkit.launch();
   try {
     let newCards: NewCardMap = new Map<Commander, string[]>();
+    // todo: parallelize
     for (const commander of commanders) {
       const url: string = getCommanderUrl(commander);
       console.log(`Getting cards from ${url}`);
