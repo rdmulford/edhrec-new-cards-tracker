@@ -1,9 +1,9 @@
-import inquirer from 'inquirer';
-import { Answers } from 'inquirer';
-import inquirerPrompt from 'inquirer-autocomplete-prompt';
-import { Commander, TrackConfig } from './config.js';
-import { formatCommanderName } from './edhrec.js';
-import { typeahead } from './scryfall.js';
+import inquirer from "inquirer";
+import { Answers } from "inquirer";
+import inquirerPrompt from "inquirer-autocomplete-prompt";
+import { Commander, AppConfig } from "./types/index.js";
+import { formatCommanderName } from "./edhrec.js";
+import { typeahead } from "./scryfall.js";
 
 export const confirm = async (message: string): Promise<boolean> => {
   const questions = [
@@ -17,39 +17,41 @@ export const confirm = async (message: string): Promise<boolean> => {
   const result = await inquirer
     .prompt(questions)
     .then((answers: Answers) => {
-      return answers.confirmed as boolean
+      return answers.confirmed as boolean;
     })
     .catch((error) => {
-      throw new Error(error)
+      throw new Error(error);
     });
-    return result
-}
+  return result;
+};
 
 type PromptForCommandersOptions = {
-  reset?: boolean
-  existingCommanders?: Commander[]
-}
+  reset?: boolean;
+  existingCommanders?: Commander[];
+};
 
 // get commanders from config and user input
-export const getCommanders = async (opts: PromptForCommandersOptions): Promise<Commander[]> => {
-  const { reset, existingCommanders } = opts
+export const getCommanders = async (
+  opts: PromptForCommandersOptions
+): Promise<Commander[]> => {
+  const { reset, existingCommanders } = opts;
 
-  let commanders: Commander[] = []
+  let commanders: Commander[] = [];
 
   // append commanders from config if not resetting from scratch
   if (!reset && existingCommanders) {
-    commanders.push(...existingCommanders)
+    commanders.push(...existingCommanders);
   }
 
-  inquirer.registerPrompt('autocomplete', inquirerPrompt);
+  inquirer.registerPrompt("autocomplete", inquirerPrompt);
 
   try {
-    commanders = await promptForCommander(commanders)
+    commanders = await promptForCommander(commanders);
   } catch (error: any) {
-    throw new Error(error)
+    throw new Error(error);
   }
-  return [...new Set(commanders)] // deduplicate
-}
+  return [...new Set(commanders)]; // deduplicate
+};
 
 // prompt for commanders to add
 const promptForCommander = async (commanders: Commander[]) => {
@@ -60,16 +62,16 @@ const promptForCommander = async (commanders: Commander[]) => {
       message: "Enter commander name",
       source: (answersSoFar: any, input: any) => {
         try {
-          return typeahead(input)
+          return typeahead(input);
         } catch (err: any) {
-          throw new Error(err)
+          throw new Error(err);
         }
-      }
+      },
     },
     {
       type: "input",
       name: "commander_type",
-      message: "Enter commander type",
+      message: "Enter commander theme (budget, expensive, lands, etc.)",
     },
     {
       type: "confirm",
@@ -83,15 +85,16 @@ const promptForCommander = async (commanders: Commander[]) => {
     .then(async (answers: Answers) => {
       const commander: Commander = {
         name: formatCommanderName(answers.commander_name as string),
-        theme: answers.commander_type as string
-      }
-      commanders.push(commander)
+        theme: answers.commander_type as string,
+      };
+      commanders.push(commander);
+      console.log("Current Commanders: ", commanders);
       if (!answers.is_finished) {
-        await promptForCommander(commanders)
+        await promptForCommander(commanders);
       }
     })
     .catch((error) => {
-      throw new Error(error)
+      throw new Error(error);
     });
-  return commanders
-}
+  return commanders;
+};

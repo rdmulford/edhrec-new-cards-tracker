@@ -9,5 +9,5 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "node"
-  },
+  }
 }
