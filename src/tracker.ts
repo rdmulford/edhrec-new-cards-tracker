@@ -1,25 +1,54 @@
+import { time } from 'console';
 import { Browser, webkit } from 'playwright';
-import { Commander } from './config.js';
+import { Commander, TrackConfig } from './config.js';
 import { getCommanderUrl } from './edhrec.js';
+import { readJson } from './file.js';
 
-export const track = async (commanders: Commander[]) => {
+type NewCardMap = Map<string, string[]>
+
+type TrackingResults = {
+  timestamp: Date
+  cards: NewCardMap
+}
+
+export const track = async (config: TrackConfig) => {
+  const cardMap = await getNewCards(config.commanders)
+
+  const results: TrackingResults = {
+    cards: cardMap,
+    timestamp: new Date()
+  }
+
+  console.log("New Results:")
+  console.log(results)
+
+  const previousResults: TrackingResults | undefined = readJson(config.resultPath)
+  if (!previousResults) {
+    console.log("no previous results to compare to")
+    return
+  }
+  console.log("Previous results:")
+  console.log(previousResults)
+}
+
+const getNewCards = async (commanders: Commander[]): Promise<NewCardMap> => {
   const browser = await webkit.launch();
   try {
-    let newCards: string[][] = []
+    let newCards: NewCardMap = new Map<string, string[]>()
     for (const commander of commanders) {
       const url: string = getCommanderUrl(commander)
-      console.log(`getting cards from ${url}`)
+      console.log(`Getting cards from ${url}`)
       const cards = await fetchCards({
         browser,
         url: url,
       })
       console.log(cards)
-      newCards.push(cards)
+      newCards.set(commander.name, cards)
     }
 
-    console.log(newCards)
-  } catch (err) {
-    console.log(err)
+    return newCards
+  } catch (err: any) {
+    throw new Error(err)
   } finally {
     await browser.close();
   }
@@ -34,7 +63,8 @@ type FetchCardsArgs = {
 const fetchCards = async (args: FetchCardsArgs): Promise<string[]> => {
   const { browser, url } = args
   // navigate to page
-  const page = await browser.newPage();
+  const context = await browser.newContext()
+  const page = await context.newPage();
   await page.goto(url);
 
   // find new cards id
@@ -42,6 +72,8 @@ const fetchCards = async (args: FetchCardsArgs): Promise<string[]> => {
   if (!rawNewCards) {
     throw new Error("new cards not found")
   }
+
+  context.close()
 
   // parse raw text (disclaimer: i hate this)
 
@@ -62,6 +94,7 @@ const fetchCards = async (args: FetchCardsArgs): Promise<string[]> => {
     }
     return cardName[0]
   })
+
   newCards.pop() // last element is always bogus
   return newCards.flatMap(card => card ? [card] : []) // get rid of undefined
 }

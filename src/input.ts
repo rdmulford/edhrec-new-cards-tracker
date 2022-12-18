@@ -5,21 +5,40 @@ import { Commander, TrackConfig } from './config.js';
 import { formatCommanderName } from './edhrec.js';
 import { typeahead } from './scryfall.js';
 
+export const confirm = async (message: string): Promise<boolean> => {
+  const questions = [
+    {
+      type: "confirm",
+      name: "confirmed",
+      message,
+    },
+  ];
+
+  const result = await inquirer
+    .prompt(questions)
+    .then((answers: Answers) => {
+      return answers.confirmed as boolean
+    })
+    .catch((error) => {
+      throw new Error(error)
+    });
+    return result
+}
 
 type PromptForCommandersOptions = {
   reset?: boolean
-  config: TrackConfig
+  existingCommanders?: Commander[]
 }
 
 // get commanders from config and user input
 export const getCommanders = async (opts: PromptForCommandersOptions): Promise<Commander[]> => {
-  const { reset, config } = opts
+  const { reset, existingCommanders } = opts
 
   let commanders: Commander[] = []
 
   // append commanders from config if not resetting from scratch
-  if (!reset) {
-    commanders.push(...config.commanders)
+  if (!reset && existingCommanders) {
+    commanders.push(...existingCommanders)
   }
 
   inquirer.registerPrompt('autocomplete', inquirerPrompt);
@@ -29,7 +48,7 @@ export const getCommanders = async (opts: PromptForCommandersOptions): Promise<C
   } catch (error: any) {
     throw new Error(error)
   }
-  return commanders
+  return [...new Set(commanders)] // deduplicate
 }
 
 // prompt for commanders to add
