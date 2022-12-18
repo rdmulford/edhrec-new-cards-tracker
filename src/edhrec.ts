@@ -3,7 +3,7 @@ import { Commander } from "./types/index.js";
 export const formatCommanderName = (input: string): string => {
   return input
     .toLowerCase()
-    .replace(/[^a-zA-Z ]/g, "")
+    .replace(/[^a-zA-Z\- ]/g, "")
     .replace(/ /g, "-");
 };
 

@@ -63,7 +63,6 @@ const resultDiff = (
       }
     }
   }
-  console.log("matched commanders:", matchedCommanders);
   for (let [newCommander, newCards] of newResults.cards) {
     if (!matchedCommanders.includes(newCommander)) {
       diffResults.set(newCommander, newCards);
@@ -85,7 +84,9 @@ const printResultMap = (result: TrackingResults) => {
       h2(commander.name.toUpperCase(), commander.theme?.toUpperCase())
     );
     if (cards.length <= 0) {
+      console.log();
       console.log("No cards found");
+      console.log();
       continue;
     }
     for (const card of cards) {
@@ -93,5 +94,4 @@ const printResultMap = (result: TrackingResults) => {
     }
     console.log();
   }
-  console.log();
 };
