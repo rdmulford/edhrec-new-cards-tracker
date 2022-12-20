@@ -8,9 +8,15 @@ import {
 import { getCommanderUrl } from "./edhrec.js";
 import { readJson, writeJson } from "./file.js";
 import { outputResults } from "./output.js";
+import { retryAsync } from "ts-retry";
 
 export const track = async (config: AppConfig, resultPath: string) => {
-  const cardMap = await getNewCards(config.commanders);
+  let cardMap: NewCardMap;
+  try {
+    cardMap = await getNewCards(config.commanders);
+  } catch (error: any) {
+    throw new Error(error);
+  }
 
   const results: TrackingResults = {
     cards: cardMap,
@@ -27,7 +33,11 @@ export const track = async (config: AppConfig, resultPath: string) => {
 
   outputResults(results, previousResults);
 
-  writeJson(resultPath, results);
+  try {
+    writeJson(resultPath, results);
+  } catch (error: any) {
+    throw new Error(error);
+  }
 };
 
 const getNewCards = async (commanders: Commander[]): Promise<NewCardMap> => {
@@ -46,8 +56,8 @@ const getNewCards = async (commanders: Commander[]): Promise<NewCardMap> => {
     }
 
     return newCards;
-  } catch (err: any) {
-    throw new Error(err);
+  } catch (error: any) {
+    throw new Error(error);
   } finally {
     await browser.close();
   }
@@ -67,10 +77,21 @@ const fetchCards = async (args: FetchCardsArgs): Promise<string[]> => {
   await page.goto(url);
 
   // find new cards id
-  const rawNewCards = await page.locator("div#newcards").textContent();
+  const maxTry = 5;
+  let currentTry = 0;
+  const rawNewCards = await retryAsync(
+    async () => {
+      currentTry += 1;
+      console.log(`Attempt ${currentTry}/${maxTry}`);
+      return await page.locator("div#newcards").textContent();
+    },
+    { delay: 100, maxTry }
+  );
   if (!rawNewCards) {
     throw new Error("new cards not found");
   }
+
+  console.log("Success!");
 
   context.close();
 
