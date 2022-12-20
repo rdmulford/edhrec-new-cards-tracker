@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
 import { Answers } from "inquirer";
 import inquirerPrompt from "inquirer-autocomplete-prompt";
-import { Commander, AppConfig } from "./types/index.js";
+import { Commander } from "./types/index.js";
 import { formatCommanderName } from "./edhrec.js";
 import { typeahead } from "./scryfall.js";
 

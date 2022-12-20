@@ -1,6 +1,7 @@
 {
   "name": "edhrec-new-cards-tracker",
   "main": "./dist/index.js",
+  "version": "0.5.0",
   "type": "module",
   "bin": {
     "nct": "./dist/index.js"
@@ -10,13 +11,13 @@
     "start": "yarn run build && node dist/index.js",
     "build": "tsc -p .",
     "clean": "rm -rf ./node_modules ./package-lock.json ./dist && yarn",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "publish": "yarn run clean && yarn run build && npm publish"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.3",
     "@types/inquirer-autocomplete-prompt": "^3.0.0",
     "@types/node": "^18.11.16",
-    "nodemon": "^2.0.20",
     "prettier": "2.8.1",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"

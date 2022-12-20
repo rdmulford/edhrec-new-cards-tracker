@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --experimental-specifier-resolution=node
 
 import { program } from "commander";
 import { AppConfig } from "./types/index.js";
